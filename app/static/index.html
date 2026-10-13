@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Assistant | Grounded AI RAG</title>
+  <meta name="description" content="Production-ready AI Knowledge Assistant with strict factual grounding, source citations, and Ollama Cloud 120B integration.">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Header -->
+    <header class="top-nav">
+      <div class="brand">
+        <div class="brand-icon">🧠</div>
+        <div>
+          <h1>Knowledge Assistant</h1>
+          <p class="tagline">Strictly Grounded RAG &bull; Ollama Cloud 120B &bull; ChromaDB</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-model" id="model-badge">Model: Loading...</span>
+        <span class="badge badge-status" id="health-badge">Status: Checking...</span>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <!-- Left Sidebar: Documents & Knowledge Base -->
+      <aside class="sidebar">
+        <section class="card upload-card">
+          <h2>📄 Document Ingestion</h2>
+          <p class="card-desc">Accepts PDF, TXT, and Markdown files. Automatically chunks and embeds text.</p>
+
+          <div class="drop-zone" id="drop-zone">
+            <div class="drop-icon">📤</div>
+            <p><strong>Click to browse</strong> or drag & drop</p>
+            <span class="file-hints">Supports .pdf, .txt, .md</span>
+            <input type="file" id="file-input" multiple accept=".pdf,.txt,.md,.markdown" hidden>
+          </div>
+
+          <div id="upload-status" class="status-msg hidden"></div>
+        </section>
+
+        <section class="card docs-card">
+          <div class="card-header-flex">
+            <h2>📚 Indexed Documents (<span id="doc-count">0</span>)</h2>
+            <button id="refresh-docs-btn" class="btn-icon" title="Refresh Documents">🔄</button>
+          </div>
+
+          <div class="kb-stats" id="kb-stats">
+            <span id="stat-chunks">0 Chunks Indexed</span>
+          </div>
+
+          <ul class="doc-list" id="doc-list">
+            <li class="empty-state">No documents indexed yet. Upload one above!</li>
+          </ul>
+        </section>
+      </aside>
+
+      <!-- Right Main: QA Assistant -->
+      <section class="chat-section">
+        <div class="card chat-card">
+          <div class="chat-header">
+            <div>
+              <h2>Ask Knowledge Assistant</h2>
+              <p class="card-desc">Answers are strictly grounded in indexed documents with source evidence.</p>
+            </div>
+            <button id="clear-chat-btn" class="btn-secondary btn-sm">Clear Chat</button>
+          </div>
+
+          <!-- Suggested Questions -->
+          <div class="suggestions-container">
+            <span class="suggestion-label">Suggested test questions:</span>
+            <div class="suggestion-chips" id="suggestion-chips">
+              <button class="chip" data-q="What are the core principles of AI ethics in the policy?">AI Ethics Principles</button>
+              <button class="chip" data-q="Explain how quantum superposition works and how it differs from classical bits.">Quantum Superposition</button>
+              <button class="chip" data-q="Compare cloud computing shared responsibility with AI data governance requirements.">Multi-Doc Comparison</button>
+              <button class="chip chip-unanswerable" data-q="What is the average surface temperature and atmospheric pressure on Venus?">Unanswerable Query</button>
+            </div>
+          </div>
+
+          <!-- Messages Stream -->
+          <div class="messages-container" id="messages-container">
+            <div class="message assistant-message welcome-msg">
+              <div class="msg-avatar">🤖</div>
+              <div class="msg-body">
+                <p>Hello! I am your <strong>Knowledge Assistant</strong>. I answer questions exclusively based on your uploaded documents.</p>
+                <ul>
+                  <li><strong>Grounded Answers:</strong> Generated using Ollama Cloud 120B with exact citations.</li>
+                  <li><strong>Zero Hallucination:</strong> If the documents don't have the answer, I will clearly say it is unavailable.</li>
+                  <li><strong>Inspectable Evidence:</strong> Click on citations to inspect exact source excerpts and match scores.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input Area -->
+          <form class="chat-input-form" id="chat-form">
+            <div class="input-wrapper">
+              <textarea 
+                id="query-input" 
+                rows="2" 
+                placeholder="Ask a question about your documents (e.g. 'What are the security requirements?'). Press Enter to submit..."
+                required
+              ></textarea>
+              <button type="submit" id="send-btn" class="btn-primary">
+                <span>Ask</span>
+                <span class="send-arrow">➔</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+FUNDAMENTALS OF QUANTUM COMPUTING & ALGORITHMIC ADVANTAGES
+Author: Advanced Research Labs
+
+1. THE QUANTUM BIT (QUBIT)
+Unlike classical bits which exist strictly in binary states 0 or 1, quantum bits (qubits) leverage the physical principle of superposition. A qubit state |psi> is mathematically expressed as a linear combination |psi> = alpha|0> + beta|1>, where alpha and beta are complex probability amplitudes such that |alpha|^2 + |beta|^2 = 1.
+
+2. QUANTUM ENTANGLEMENT
+When two qubits become entangled, the quantum state of one particle cannot be described independently of the state of the other, regardless of the physical distance separating them. Measurement of one entangled qubit instantaneously determines the outcome of the other qubit measurement.
+
+3. DECOHERENCE AND ERROR CORRECTION
+Quantum processors require extreme cryogenic isolation, typically operating at temperatures near 15 millikelvin (-273.135 degrees Celsius). Thermal noise, electromagnetic interference, and material imperfections cause quantum decoherence, destroying quantum superposition within microseconds. Surface codes and topological qubits are actively researched to achieve fault-tolerant logical qubits.
+
+4. ALGORITHMIC APPLICATIONS
+- Shor's Algorithm: Provides exponential speedup for integer factorization, posing a cryptographic threat to RSA-2048 and elliptic curve cryptography.
+- Grover's Algorithm: Provides quadratic speedup for unstructured database searches from O(N) to O(sqrt(N)).
+- Variational Quantum Eigensolver (VQE): Used for molecular chemistry simulations and drug discovery.

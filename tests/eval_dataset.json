@@ -1,0 +1,110 @@
+[
+  {
+    "id": "eval_01",
+    "category": "answerable_single_doc",
+    "question": "What is the acceptable range for disparate impact ratios according to the AI Ethics Framework?",
+    "expected_answer_contains": ["0.80", "1.25", "disparate impact"],
+    "expected_sources": ["ai_ethics_framework.md"],
+    "is_answerable": true,
+    "rationale": "Directly stated in Section 2.1 of AI Ethics Framework."
+  },
+  {
+    "id": "eval_02",
+    "category": "answerable_single_doc",
+    "question": "What are the Recovery Point Objective (RPO) and Recovery Time Objective (RTO) targets for tier-1 databases?",
+    "expected_answer_contains": ["5 minutes", "15 minutes", "RPO", "RTO"],
+    "expected_sources": ["cloud_infrastructure_guide.txt"],
+    "is_answerable": true,
+    "rationale": "Explicitly defined in Section 3 of Cloud Handbook."
+  },
+  {
+    "id": "eval_03",
+    "category": "answerable_single_doc",
+    "question": "At what operating temperature do quantum processors typically function and why does decoherence occur?",
+    "expected_answer_contains": ["15 millikelvin", "decoherence", "thermal noise"],
+    "expected_sources": ["quantum_computing_primer.txt"],
+    "is_answerable": true,
+    "rationale": "Directly covered in Section 3 of Quantum Computing Primer."
+  },
+  {
+    "id": "eval_04",
+    "category": "answerable_single_doc",
+    "question": "How often must data at rest encryption keys be automatically rotated, and what standard is required?",
+    "expected_answer_contains": ["90 days", "AES", "256"],
+    "expected_sources": ["enterprise_security_policy.pdf"],
+    "is_answerable": true,
+    "rationale": "Found in Section 1 of the Enterprise Security Policy PDF."
+  },
+  {
+    "id": "eval_05",
+    "category": "answerable_multi_doc",
+    "question": "Compare the data privacy and encryption protections required for customer data between the AI Ethics policy and the Cloud infrastructure guide.",
+    "expected_answer_contains": ["PII scrubbing", "AES-256", "GDPR", "KMS"],
+    "expected_sources": ["ai_ethics_framework.md", "cloud_infrastructure_guide.txt"],
+    "is_answerable": true,
+    "rationale": "Synthesizes data scrubbing & GDPR from AI Ethics with AES-256 KMS encryption from Cloud Handbook."
+  },
+  {
+    "id": "eval_06",
+    "category": "answerable_multi_doc",
+    "question": "What are the required retention and review procedures for audit logs across the AI Ethics framework and Enterprise Security policy?",
+    "expected_answer_contains": ["7 years", "WORM", "weekly"],
+    "expected_sources": ["ai_ethics_framework.md", "enterprise_security_policy.pdf"],
+    "is_answerable": true,
+    "rationale": "Combines 7-year WORM storage requirement in AI policy with weekly InfoSec team log reviews in Security policy."
+  },
+  {
+    "id": "eval_07",
+    "category": "answerable_multi_doc",
+    "question": "How does Shor's algorithm in quantum computing pose a risk to the network encryption protocols mandated in our security policy?",
+    "expected_answer_contains": ["Shor", "cryptographic threat", "RSA", "TLS"],
+    "expected_sources": ["quantum_computing_primer.txt", "enterprise_security_policy.pdf"],
+    "is_answerable": true,
+    "rationale": "Connects Shor's integer factorization threat to TLS public-key infrastructure."
+  },
+  {
+    "id": "eval_08",
+    "category": "answerable_multi_doc",
+    "question": "What human approvals and operational escalation steps are required during AI autonomous actions versus high-severity cloud outages?",
+    "expected_answer_contains": ["$10,000", "human", "PagerDuty", "bridge call"],
+    "expected_sources": ["ai_ethics_framework.md", "cloud_infrastructure_guide.txt"],
+    "is_answerable": true,
+    "rationale": "Compares dual-custody human approval for $10k+ transactions with Sev-1 incident commander paging."
+  },
+  {
+    "id": "eval_09",
+    "category": "unanswerable",
+    "question": "What is the average surface temperature and atmospheric pressure on the planet Venus?",
+    "expected_answer_contains": ["do not contain sufficient information", "unavailable"],
+    "expected_sources": [],
+    "is_answerable": false,
+    "rationale": "Planetary science is completely absent from all enterprise policy documents."
+  },
+  {
+    "id": "eval_10",
+    "category": "unanswerable",
+    "question": "What were Apple's Q3 fiscal quarterly revenues and stock dividend payouts?",
+    "expected_answer_contains": ["do not contain sufficient information", "unavailable"],
+    "expected_sources": [],
+    "is_answerable": false,
+    "rationale": "External corporate financial performance is not present in indexed documents."
+  },
+  {
+    "id": "eval_11",
+    "category": "unanswerable",
+    "question": "How many days of paid maternity and paternity leave are employees entitled to take each calendar year?",
+    "expected_answer_contains": ["do not contain sufficient information", "unavailable"],
+    "expected_sources": [],
+    "is_answerable": false,
+    "rationale": "Employee HR benefits and parental leave are not covered in the engineering/security docs."
+  },
+  {
+    "id": "eval_12",
+    "category": "unanswerable",
+    "question": "How do I configure Prometheus alerts and Horizontal Pod Autoscalers (HPA) in our Kubernetes cluster?",
+    "expected_answer_contains": ["do not contain sufficient information", "unavailable"],
+    "expected_sources": [],
+    "is_answerable": false,
+    "rationale": "Kubernetes HPA and Prometheus alertmanager configurations are not documented in the corpus."
+  }
+]

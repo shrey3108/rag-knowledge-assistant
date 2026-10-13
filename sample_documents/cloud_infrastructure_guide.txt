@@ -1,0 +1,21 @@
+CLOUD INFRASTRUCTURE & DISASTER RECOVERY HANDBOOK
+Version: 3.4
+Classification: Internal Confidential
+
+SECTION 1: ZERO TRUST ARCHITECTURE & IDENTITY
+All internal microservices must implement zero-trust network access. Authentication must be verified at every hop using mTLS (mutual Transport Layer Security) with ephemeral X.509 certificates rotating every 24 hours. Static API tokens are deprecated.
+
+SECTION 2: SHARED RESPONSIBILITY MODEL
+In our hybrid-cloud model, the cloud provider manages physical hardware, hypervisors, and data center physical security. Our enterprise team is strictly responsible for guest operating system patching, database encryption at rest (using AES-256 with KMS customer-managed keys), application access policies, and network firewall ingress rules.
+
+SECTION 3: DISASTER RECOVERY & AVAILABILITY TARGETS
+All tier-1 mission-critical databases are deployed in a multi-region active-passive topology across US-East-1 and US-West-2.
+- Recovery Point Objective (RPO): Maximum 5 minutes of data loss.
+- Recovery Time Objective (RTO): Maximum 15 minutes for failover orchestration.
+Automated failover drills are conducted quarterly during scheduled maintenance windows.
+
+SECTION 4: INCIDENT ESCALATION PROTOCOL
+When an outage severity level 1 (Sev-1) is triggered:
+1. The on-call incident commander is paged via PagerDuty within 120 seconds.
+2. A bridge call is established within 5 minutes.
+3. Status updates must be broadcast to the internal stakeholder channel every 20 minutes until full service restoration.

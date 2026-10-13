@@ -1,0 +1,67 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 7 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 308 >>
+stream
+BT
+/F1 16 Tf
+50 720 Td
+(ENTERPRISE DATA ENCRYPTION AND KEY MANAGEMENT POLICY) Tj
+/F1 11 Tf
+0 -30 Td
+(Section 1: Data at Rest Encryption Standards) Tj
+0 -20 Td
+(All customer data stored in persistent volumes must be encrypted with AES-GCM 256-bit.) Tj
+0 -20 Td
+(Encryption keys must be rotated automatically every 90 days via AWS KMS or Azure Key Vault.) Tj
+0 -20 Td
+(Hardcoded encryption keys in git repositories will result in immediate credential revocation.) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Resources << /Font << /F1 7 0 R >> >> >>
+endobj
+6 0 obj
+<< /Length 285 >>
+stream
+BT
+/F1 16 Tf
+50 720 Td
+(Section 2: Network Transmission & Ingress Rules) Tj
+/F1 11 Tf
+0 -30 Td
+(TLS version 1.3 is strictly enforced for all public facing endpoints. TLS 1.0 and 1.1 are disabled.) Tj
+0 -20 Td
+(Port 22 SSH ingress is blocked globally from the public internet. Access requires bastion VPN.) Tj
+0 -20 Td
+(Security audit logs must be reviewed by the InfoSec team weekly.) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000244 00000 n 
+0000000605 00000 n 
+0000000728 00000 n 
+0000001066 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+1135
+%%EOF
