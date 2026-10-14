@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knowledge Assistant | Grounded AI RAG</title>
   <meta name="description" content="Production-ready AI Knowledge Assistant with strict factual grounding, source citations, and Ollama Cloud 120B integration.">
-  <link rel="stylesheet" href="/static/style.css?v=5">
+  <link rel="stylesheet" href="/static/style.css?v=6">
 </head>
 <body>
   <div class="app-layout">
@@ -40,21 +40,6 @@
           </div>
 
           <div id="upload-status" class="status-msg hidden"></div>
-        </section>
-
-        <section class="card docs-card">
-          <div class="card-header-flex">
-            <h2>📚 Indexed Documents (<span id="doc-count">0</span>)</h2>
-            <button id="refresh-docs-btn" class="btn-icon" title="Refresh Documents">🔄</button>
-          </div>
-
-          <div class="kb-stats" id="kb-stats">
-            <span id="stat-chunks">0 Chunks Indexed</span>
-          </div>
-
-          <ul class="doc-list" id="doc-list">
-            <li class="empty-state">No documents indexed yet. Upload one above!</li>
-          </ul>
         </section>
       </aside>
 
@@ -122,6 +107,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="/static/app.js?v=4"></script>
+  <script src="/static/app.js?v=6"></script>
 </body>
 </html>

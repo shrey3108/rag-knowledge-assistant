@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
       modelBadge.textContent = `Model: ${data.model}`;
       healthBadge.textContent = `● Online`;
       healthBadge.style.color = "#6ee7b7";
-      statChunks.textContent = `${data.total_indexed_chunks} Chunks Indexed`;
+      if (statChunks) statChunks.textContent = `${data.total_indexed_chunks} Chunks Indexed`;
     } catch (err) {
       healthBadge.textContent = `● Offline`;
       healthBadge.style.color = "#f87171";
@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!res.ok) throw new Error("Failed to load documents");
       const data = await res.json();
       renderDocuments(data.documents);
-      docCount.textContent = data.total_documents;
+      if (docCount) docCount.textContent = data.total_documents;
     } catch (err) {
       console.error(err);
     }
@@ -61,6 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
       docFilterSelect.innerHTML = `<option value="">🔍 All Documents</option>` +
         (docs || []).map(d => `<option value="${escapeHtml(d.document_name)}" ${currentSelected === d.document_name ? "selected" : ""}>📄 ${escapeHtml(d.document_name)}</option>`).join("");
     }
+
+    if (!docList) return;
 
     if (!docs || docs.length === 0) {
       docList.innerHTML = `<li class="empty-state">No documents indexed yet. Upload one above!</li>`;
@@ -174,10 +176,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  refreshDocsBtn.addEventListener("click", async () => {
-    await loadDocuments();
-    await checkHealth();
-  });
+  if (refreshDocsBtn) {
+    refreshDocsBtn.addEventListener("click", async () => {
+      await loadDocuments();
+      await checkHealth();
+    });
+  }
 
   // --- Chat & Query Handler ---
   chatForm.addEventListener("submit", async (e) => {
