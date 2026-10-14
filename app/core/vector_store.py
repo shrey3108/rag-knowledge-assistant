@@ -49,6 +49,7 @@ class VectorStore:
                 "page_number": c.page_number,
                 "chunk_index": c.chunk_index,
                 "char_count": c.char_count,
+                "file_hash": c.file_hash,
             }
             for c in chunks
         ]
@@ -62,13 +63,27 @@ class VectorStore:
         logger.info(f"Upserted {len(chunks)} chunks into ChromaDB collection '{self.collection_name}'.")
         return len(chunks)
 
+    def has_file_hash(self, file_hash: str) -> Optional[str]:
+        """Check if a file with this SHA-256 hash already exists. Returns document_name if found."""
+        if not file_hash:
+            return None
+        try:
+            res = self.collection.get(where={"file_hash": file_hash}, limit=1, include=["metadatas"])
+            if res and res.get("metadatas") and len(res["metadatas"]) > 0:
+                return res["metadatas"][0].get("document_name")
+        except Exception as e:
+            logger.warning(f"Error querying file_hash: {e}")
+        return None
+
     def similarity_search(
         self,
         query_embedding: List[float],
         top_k: int = 4,
-        score_threshold: Optional[float] = None
+        score_threshold: Optional[float] = None,
+        filter_document: Optional[str] = None,
     ) -> List[SearchResult]:
-        """Perform semantic search using query embedding vector."""
+        """Perform semantic search using query embedding vector, optionally scoped to a document."""
+        where_filter = {"document_name": filter_document} if filter_document else None
         total_items = self.collection.count()
         if total_items == 0:
             return []
@@ -77,8 +92,10 @@ class VectorStore:
         results = self.collection.query(
             query_embeddings=[query_embedding],
             n_results=n_results,
+            where=where_filter,
             include=["documents", "metadatas", "distances"]
         )
+
 
         search_results: List[SearchResult] = []
         if not results or not results["ids"] or not results["ids"][0]:

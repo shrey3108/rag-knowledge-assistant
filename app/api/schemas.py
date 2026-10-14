@@ -9,6 +9,14 @@ class QueryRequest(BaseModel):
         description="The question to be answered using the indexed documents.",
         examples=["What are the principles of our AI ethics policy?"]
     )
+    document_name: Optional[str] = Field(
+        default=None,
+        description="Optional: Target search strictly to this specific document."
+    )
+    session_id: Optional[str] = Field(
+        default=None,
+        description="Optional: Conversation session ID for multi-turn conversational context."
+    )
 
 
 class EvidenceSchema(BaseModel):
@@ -27,6 +35,9 @@ class QueryResponse(BaseModel):
     confidence_score: float
     retrieved_chunks_count: int
     cached: bool = False
+    document_filter: Optional[str] = None
+    session_id: Optional[str] = None
+
 
 
 

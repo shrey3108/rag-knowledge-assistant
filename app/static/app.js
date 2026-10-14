@@ -15,6 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const modelBadge = document.getElementById("model-badge");
   const healthBadge = document.getElementById("health-badge");
   const suggestionChips = document.querySelectorAll(".chip");
+  const docFilterSelect = document.getElementById("doc-filter-select");
+
+  // Session ID for multi-turn conversational memory
+  let currentSessionId = localStorage.getItem("rag_session_id") || "sess_" + Date.now();
+  localStorage.setItem("rag_session_id", currentSessionId);
 
   // Initial Load
   checkHealth();
@@ -50,10 +55,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderDocuments(docs) {
+    // Populate document filter dropdown
+    if (docFilterSelect) {
+      const currentSelected = docFilterSelect.value;
+      docFilterSelect.innerHTML = `<option value="">🔍 All Documents</option>` +
+        (docs || []).map(d => `<option value="${escapeHtml(d.document_name)}" ${currentSelected === d.document_name ? "selected" : ""}>📄 ${escapeHtml(d.document_name)}</option>`).join("");
+    }
+
     if (!docs || docs.length === 0) {
       docList.innerHTML = `<li class="empty-state">No documents indexed yet. Upload one above!</li>`;
       return;
     }
+
 
     docList.innerHTML = docs
       .map(
@@ -192,6 +205,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   clearChatBtn.addEventListener("click", () => {
+    currentSessionId = "sess_" + Date.now();
+    localStorage.setItem("rag_session_id", currentSessionId);
     messagesContainer.innerHTML = "";
   });
 
@@ -206,11 +221,18 @@ document.addEventListener("DOMContentLoaded", () => {
     appendLoadingMessage(loadingId);
     scrollToBottom();
 
+    const selectedDoc = docFilterSelect ? docFilterSelect.value || null : null;
+    const payload = {
+      question: question,
+      document_name: selectedDoc,
+      session_id: currentSessionId,
+    };
+
     try {
       const res = await fetch("/api/v1/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -221,6 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         appendErrorMessage(data.detail || "Failed to retrieve response from assistant.");
       }
+
     } catch (err) {
       removeMessage(loadingId);
       appendErrorMessage(`Network error: ${err.message}`);

@@ -129,7 +129,11 @@ async def query_knowledge_base(
     rag_service: RAGService = Depends(get_rag_service),
 ):
     try:
-        result = await rag_service.answer_question(question=payload.question)
+        result = await rag_service.answer_question(
+            question=payload.question,
+            document_name=payload.document_name,
+            session_id=payload.session_id,
+        )
         evidence = [
             EvidenceSchema(
                 document_name=item.document_name,
@@ -148,6 +152,8 @@ async def query_knowledge_base(
             confidence_score=result.confidence_score,
             retrieved_chunks_count=result.retrieved_chunks_count,
             cached=result.cached,
+            document_filter=result.document_filter,
+            session_id=result.session_id,
         )
     except Exception as e:
         logger.error(f"Error handling query: {e}", exc_info=True)

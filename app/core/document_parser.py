@@ -11,15 +11,20 @@ class ParsedPage(BaseModel):
     text: str
 
 
+import hashlib
+
 class ParsedDocument(BaseModel):
     filename: str
     file_type: str
+    file_hash: str = ""
     total_pages: int
     pages: List[ParsedPage]
+
 
     @property
     def full_text(self) -> str:
         return "\n\n".join(p.text for p in self.pages if p.text)
+
 
 
 class DocumentParser:
@@ -45,6 +50,11 @@ class DocumentParser:
 
 
     @classmethod
+    def compute_file_hash(cls, content: bytes) -> str:
+        """Calculate SHA256 file hash to detect duplicates across uploads."""
+        return hashlib.sha256(content).hexdigest()
+
+    @classmethod
     def parse_bytes(cls, content: bytes, filename: str) -> ParsedDocument:
         """Parse raw file bytes into a ParsedDocument."""
         ext = Path(filename).suffix.lower()
@@ -53,10 +63,12 @@ class DocumentParser:
                 f"Unsupported file format '{ext}'. Supported formats: {', '.join(cls.SUPPORTED_EXTENSIONS)}"
             )
 
+        file_hash = cls.compute_file_hash(content)
+
         if ext == ".pdf":
-            return cls._parse_pdf(content, filename)
+            return cls._parse_pdf(content, filename, file_hash)
         else:
-            return cls._parse_text(content, filename, ext)
+            return cls._parse_text(content, filename, ext, file_hash)
 
     @classmethod
     def parse_file(cls, file_path: str | Path) -> ParsedDocument:
@@ -68,7 +80,7 @@ class DocumentParser:
         return cls.parse_bytes(content, path.name)
 
     @classmethod
-    def _parse_pdf(cls, content: bytes, filename: str) -> ParsedDocument:
+    def _parse_pdf(cls, content: bytes, filename: str, file_hash: str) -> ParsedDocument:
         stream = io.BytesIO(content)
         reader = pypdf.PdfReader(stream)
         pages: List[ParsedPage] = []
@@ -90,12 +102,13 @@ class DocumentParser:
         return ParsedDocument(
             filename=filename,
             file_type="pdf",
+            file_hash=file_hash,
             total_pages=total_pages,
             pages=pages,
         )
 
     @classmethod
-    def _parse_text(cls, content: bytes, filename: str, ext: str) -> ParsedDocument:
+    def _parse_text(cls, content: bytes, filename: str, ext: str, file_hash: str) -> ParsedDocument:
         # Decode trying UTF-8 first, then fallback to latin-1
         try:
             raw_text = content.decode("utf-8")
@@ -108,6 +121,8 @@ class DocumentParser:
         return ParsedDocument(
             filename=filename,
             file_type=file_type,
+            file_hash=file_hash,
             total_pages=1,
             pages=[ParsedPage(page_number=1, text=cleaned)],
         )
+

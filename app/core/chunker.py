@@ -10,6 +10,7 @@ class DocumentChunk(BaseModel):
     chunk_index: int
     text: str
     char_count: int
+    file_hash: str = ""
 
 
 class RecursiveChunker:
@@ -27,6 +28,7 @@ class RecursiveChunker:
         """Split a parsed document into structured chunks with page and document metadata."""
         chunks: List[DocumentChunk] = []
         global_chunk_idx = 0
+        file_hash = getattr(doc, "file_hash", "")
 
         for page in doc.pages:
             text = page.text.strip()
@@ -48,8 +50,10 @@ class RecursiveChunker:
                         chunk_index=global_chunk_idx,
                         text=clean_chunk,
                         char_count=len(clean_chunk),
+                        file_hash=file_hash,
                     )
                 )
+
 
         return chunks
 

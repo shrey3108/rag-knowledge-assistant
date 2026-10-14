@@ -9,6 +9,7 @@ from app.core.chunker import RecursiveChunker, DocumentChunk
 from app.core.embedding import EmbeddingService
 from app.core.vector_store import VectorStore, SearchResult
 from app.core.cache import CacheManager
+from app.core.session import SessionManager
 from app.services.llm_service import LLMService
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,9 @@ class AnswerResult(BaseModel):
     confidence_score: float
     retrieved_chunks_count: int
     cached: bool = False
+    session_id: Optional[str] = None
+    document_filter: Optional[str] = None
+
 
 
 
@@ -80,9 +84,21 @@ class RAGService:
         return normalized in greetings or normalized.startswith(("hi ", "hello ", "hey "))
 
     def ingest_document(self, content: bytes, filename: str) -> IngestionResult:
-        """Parse, chunk, embed, and store a document."""
-        # 1. Parse document
+        """Parse, chunk, embed, and store a document with SHA-256 duplicate detection."""
+        # 1. Parse document and compute content hash
         parsed_doc: ParsedDocument = DocumentParser.parse_bytes(content, filename)
+
+        # Check duplicate by content hash (inspired by previous repo)
+        existing_doc = self.vector_store.has_file_hash(parsed_doc.file_hash)
+        if existing_doc and existing_doc == filename:
+            logger.info(f"Duplicate file detected: '{filename}' has identical SHA256 hash. Skipping re-embedding.")
+            return IngestionResult(
+                filename=filename,
+                file_type=parsed_doc.file_type,
+                total_pages=parsed_doc.total_pages,
+                chunks_created=0,
+                message=f"Duplicate file detected: '{filename}' with identical SHA256 content is already indexed. Redundant embedding skipped.",
+            )
 
         # 2. Chunk document
         chunks: List[DocumentChunk] = self.chunker.chunk_document(parsed_doc)
@@ -108,8 +124,13 @@ class RAGService:
             message=f"Successfully ingested '{filename}' ({len(chunks)} chunks, {parsed_doc.total_pages} page(s)).",
         )
 
-    async def answer_question(self, question: str) -> AnswerResult:
-        """Retrieve relevant context and generate grounded answer with citations."""
+    async def answer_question(
+        self,
+        question: str,
+        document_name: Optional[str] = None,
+        session_id: Optional[str] = None,
+    ) -> AnswerResult:
+        """Retrieve relevant context and generate grounded answer with citations, optional document filter, and session history."""
         clean_query = question.strip()
         if not clean_query:
             return AnswerResult(
@@ -119,10 +140,13 @@ class RAGService:
                 evidence=[],
                 confidence_score=0.0,
                 retrieved_chunks_count=0,
+                session_id=session_id,
+                document_filter=document_name,
             )
 
-        # 0. Check cache
-        cached_payload = self.cache.get(clean_query)
+        # 0. Check cache (scoped by document filter if active)
+        cache_query_key = f"{document_name or 'all'}::{clean_query}"
+        cached_payload = self.cache.get(cache_query_key)
         if cached_payload:
             return AnswerResult(**cached_payload)
 
@@ -160,8 +184,13 @@ class RAGService:
                 confidence_score=1.0,
                 retrieved_chunks_count=0,
                 cached=False,
+                session_id=session_id,
+                document_filter=document_name,
             )
-            self.cache.set(clean_query, res.model_dump())
+            self.cache.set(cache_query_key, res.model_dump())
+            if session_id:
+                SessionManager.get_instance().add_message(session_id, "user", clean_query)
+                SessionManager.get_instance().add_message(session_id, "assistant", greeting_reply)
             return res
 
         # Check if any documents exist in vector store
@@ -174,17 +203,19 @@ class RAGService:
                 evidence=[],
                 confidence_score=0.0,
                 retrieved_chunks_count=0,
+                session_id=session_id,
+                document_filter=document_name,
             )
-
 
         # 1. Embed query
         query_embedding = self.embedding_service.embed_query(clean_query)
 
-        # 2. Retrieve top_k chunks
+        # 2. Retrieve top_k chunks (optionally scoped to a document)
         raw_results: List[SearchResult] = self.vector_store.similarity_search(
             query_embedding=query_embedding,
             top_k=self.settings.top_k,
             score_threshold=None,
+            filter_document=document_name,
         )
 
         # Filter by similarity threshold
@@ -204,6 +235,8 @@ class RAGService:
                 evidence=[],
                 confidence_score=raw_results[0].similarity_score if raw_results else 0.0,
                 retrieved_chunks_count=0,
+                session_id=session_id,
+                document_filter=document_name,
             )
 
         # Build evidence items
@@ -242,8 +275,14 @@ class RAGService:
             "Grounded Answer (remember: if the info is not in the context, say information is unavailable):"
         )
 
+        # Multi-turn history injection
+        history_turns = []
+        if session_id:
+            history_turns = SessionManager.get_instance().get_history(session_id, limit=4)
+
         messages = [
             {"role": "system", "content": system_prompt},
+            *history_turns,
             {"role": "user", "content": user_prompt},
         ]
 
@@ -277,10 +316,17 @@ class RAGService:
             confidence_score=round(top_score, 4),
             retrieved_chunks_count=len(filtered_results),
             cached=False,
+            session_id=session_id,
+            document_filter=document_name,
         )
 
-        # Store in cache (cache both answerable and clean unanswerable responses)
-        self.cache.set(clean_query, final_result.model_dump())
+        # Store in cache
+        self.cache.set(cache_query_key, final_result.model_dump())
+
+        # Store in session history
+        if session_id:
+            SessionManager.get_instance().add_message(session_id, "user", clean_query)
+            SessionManager.get_instance().add_message(session_id, "assistant", llm_response)
 
         return final_result
 
