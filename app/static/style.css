@@ -307,6 +307,33 @@ body {
   margin-bottom: 12px;
 }
 
+.doc-filter-select {
+  background: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  max-width: 280px;
+  transition: all 0.2s;
+}
+
+.doc-filter-select:hover,
+.doc-filter-select:focus {
+  border-color: rgba(99, 102, 241, 0.5);
+  background: #243046;
+}
+
+.doc-filter-select option {
+  background: #0f172a;
+  color: #f1f5f9;
+  padding: 10px;
+  font-size: 0.82rem;
+}
+
 /* Suggestions */
 .suggestions-container {
   margin-bottom: 12px;
