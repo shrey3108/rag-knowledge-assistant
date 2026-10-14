@@ -8,7 +8,6 @@ from fastapi.responses import FileResponse
 
 from app.config import get_settings
 from app.api.routes import router as api_router
-from app.api.compat_routes import router as compat_router
 from app.core.vector_store import VectorStore
 
 logging.basicConfig(
@@ -54,7 +53,6 @@ app.add_middleware(
 
 # Mount API routes
 app.include_router(api_router)
-app.include_router(compat_router)
 
 # Mount Static Files & UI
 static_dir = Path(__file__).parent / "static"
