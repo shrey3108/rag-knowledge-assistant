@@ -152,16 +152,27 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
 
-      if (res.ok) {
+      const contentType = res.headers.get("content-type") || "";
+      let data = null;
+      if (contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        if (!res.ok) {
+          throw new Error(`Server returned HTTP ${res.status}: ${text.slice(0, 150) || res.statusText || "Service temporarily unavailable"}`);
+        }
+      }
+
+      if (res.ok && data) {
         const msg = `Successfully indexed ${data.successful_count} file(s).`;
         showStatus(msg, "success");
         fileInput.value = "";
         await loadDocuments();
         await checkHealth();
       } else {
-        showStatus(`Upload failed: ${data.detail || "Error"}`, "error");
+        const errMsg = (data && data.detail) || (data && data.errors && data.errors.join(", ")) || `Upload failed (Status ${res.status})`;
+        showStatus(errMsg, "error");
       }
     } catch (err) {
       showStatus(`Upload error: ${err.message}`, "error");
@@ -239,13 +250,23 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const contentType = res.headers.get("content-type") || "";
+      let data = null;
+      if (contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        if (!res.ok) {
+          throw new Error(`Server returned HTTP ${res.status}: ${text.slice(0, 150) || res.statusText || "Request failed"}`);
+        }
+      }
+
       removeMessage(loadingId);
 
-      if (res.ok) {
+      if (res.ok && data) {
         appendAssistantMessage(data);
       } else {
-        appendErrorMessage(data.detail || "Failed to retrieve response from assistant.");
+        appendErrorMessage((data && data.detail) || "Failed to retrieve response from assistant.");
       }
 
     } catch (err) {

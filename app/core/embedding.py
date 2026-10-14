@@ -44,7 +44,13 @@ class EmbeddingService:
         if self.model == "MOCK":
             return [self._pseudo_embedding(t) for t in texts]
 
-        embeddings = self.model.encode(texts, normalize_embeddings=True, show_progress_bar=False)
+        # Use batch_size=16 to prevent memory spikes on constrained containers
+        embeddings = self.model.encode(
+            texts,
+            batch_size=16,
+            normalize_embeddings=True,
+            show_progress_bar=False,
+        )
         return embeddings.tolist()
 
     def embed_query(self, query: str) -> List[float]:

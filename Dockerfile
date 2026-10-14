@@ -5,6 +5,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     UV_SYSTEM_PYTHON=1 \
+    OMP_NUM_THREADS=1 \
     PORT=8000
 
 WORKDIR /app
@@ -22,8 +23,14 @@ RUN pip install --no-cache-dir uv
 COPY pyproject.toml README.md ./
 COPY app ./app
 
+# Install lightweight CPU-only PyTorch first (saves ~2GB size and massive RAM)
+RUN uv pip install --no-cache --index-url https://download.pytorch.org/whl/cpu torch
+
 # Install dependencies using uv
 RUN uv pip install --no-cache .
+
+# Pre-cache embedding model at build time so runtime doesn't download it or timeout
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('BAAI/bge-small-en-v1.5')"
 
 # Copy remaining project files (static assets, configs, sample docs)
 COPY . .
