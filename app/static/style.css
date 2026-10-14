@@ -474,9 +474,12 @@ body {
 .evidence-content {
   display: none;
   margin-top: 8px;
-  display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.evidence-content.open {
+  display: flex;
 }
 
 .evidence-card {

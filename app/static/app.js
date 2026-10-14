@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="evidence-section">
           <button class="evidence-toggle" onclick="toggleEvidence('${toggleId}')">
             <span>📑 Evidence Sources (${data.evidence.length})</span>
-            <span id="arrow-${toggleId}">▼</span>
+            <span id="arrow-${toggleId}">▶</span>
           </button>
           <div class="evidence-content" id="${toggleId}">
             ${itemsHtml}
@@ -357,13 +357,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const box = document.getElementById(id);
     const arrow = document.getElementById("arrow-" + id);
     if (!box) return;
-    if (box.style.display === "flex") {
-      box.style.display = "none";
-      if (arrow) arrow.textContent = "▼";
-    } else {
-      box.style.display = "flex";
-      if (arrow) arrow.textContent = "▲";
-    }
+    const isOpen = box.classList.toggle("open");
+    if (arrow) arrow.textContent = isOpen ? "▼" : "▶";
   };
 
   function scrollToBottom() {
