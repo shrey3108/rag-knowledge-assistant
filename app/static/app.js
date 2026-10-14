@@ -327,11 +327,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       evidenceHtml = `
         <div class="evidence-section">
-          <button class="evidence-toggle" onclick="toggleEvidence('${toggleId}')">
+          <button class="evidence-toggle" type="button" onclick="toggleEvidence('${toggleId}')">
             <span>📑 Evidence Sources (${data.evidence.length})</span>
-            <span id="arrow-${toggleId}">▶</span>
+            <span id="arrow-${toggleId}">▼</span>
           </button>
-          <div class="evidence-content" id="${toggleId}">
+          <div class="evidence-content" id="${toggleId}" style="display: none !important; margin-top: 8px; flex-direction: column; gap: 8px;">
             ${itemsHtml}
           </div>
         </div>
@@ -357,8 +357,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const box = document.getElementById(id);
     const arrow = document.getElementById("arrow-" + id);
     if (!box) return;
-    const isOpen = box.classList.toggle("open");
-    if (arrow) arrow.textContent = isOpen ? "▼" : "▶";
+    const isHidden = box.style.getPropertyValue("display") === "none" || box.style.display === "none";
+    if (isHidden) {
+      box.style.setProperty("display", "flex", "important");
+      if (arrow) arrow.textContent = "▲";
+    } else {
+      box.style.setProperty("display", "none", "important");
+      if (arrow) arrow.textContent = "▼";
+    }
   };
 
   function scrollToBottom() {
