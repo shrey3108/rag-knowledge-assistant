@@ -383,6 +383,89 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function formatAnswer(text) {
     if (!text) return "";
-    return escapeHtml(text).replace(/\n/g, "<br>");
+
+    // Convert in-text source citations into sleek badges
+    let formatted = text.replace(/\[Source\s*#?(\d+)[,\s]+Page\s*(\d+)\]/gi, (match, src, pg) => {
+      return `<span class="source-pill">📄 Source #${src} (P. ${pg})</span>`;
+    });
+    formatted = formatted.replace(/【Document:\s*([^,]+),\s*Page:\s*(\d+)】/gi, (match, doc, pg) => {
+      return `<span class="source-pill">📄 ${escapeHtml(doc.trim())} (P. ${pg})</span>`;
+    });
+
+    // If marked.js is available via CDN
+    if (window.marked && typeof window.marked.parse === "function") {
+      try {
+        return marked.parse(formatted);
+      } catch (e) {
+        console.warn("marked.parse error, using fallback:", e);
+      }
+    }
+
+    // Built-in offline markdown fallback (tables, bold, lists, headings)
+    return parseMarkdownFallback(formatted);
+  }
+
+  function parseMarkdownFallback(text) {
+    const lines = text.split("\n");
+    let inTable = false;
+    let tableHtml = "";
+    let result = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      let rawLine = lines[i];
+      let line = rawLine.trim();
+
+      // Check table row
+      if (line.startsWith("|") && line.endsWith("|")) {
+        // Table separator row |---|---|
+        if (/^\|[\s\-:|]+\|$/.test(line)) {
+          continue;
+        }
+        const cells = line.slice(1, -1).split("|").map(c => c.trim());
+        if (!inTable) {
+          inTable = true;
+          tableHtml = "<table><thead><tr>" + cells.map(c => `<th>${formatInline(c)}</th>`).join("") + "</tr></thead><tbody>";
+        } else {
+          tableHtml += "<tr>" + cells.map(c => `<td>${formatInline(c)}</td>`).join("") + "</tr>";
+        }
+        continue;
+      } else {
+        if (inTable) {
+          tableHtml += "</tbody></table>";
+          result.push(tableHtml);
+          inTable = false;
+          tableHtml = "";
+        }
+      }
+
+      if (line.startsWith("### ")) {
+        result.push(`<h3>${formatInline(line.slice(4))}</h3>`);
+      } else if (line.startsWith("## ")) {
+        result.push(`<h2>${formatInline(line.slice(3))}</h2>`);
+      } else if (line.startsWith("# ")) {
+        result.push(`<h1>${formatInline(line.slice(2))}</h1>`);
+      } else if (line.startsWith("* ") || line.startsWith("- ")) {
+        result.push(`<ul><li>${formatInline(line.slice(2))}</li></ul>`);
+      } else if (line === "") {
+        result.push("<br>");
+      } else {
+        result.push(`<p>${formatInline(line)}</p>`);
+      }
+    }
+
+    if (inTable) {
+      tableHtml += "</tbody></table>";
+      result.push(tableHtml);
+    }
+
+    return result.join("");
+  }
+
+  function formatInline(str) {
+    return str
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/<br>/gi, "<br>");
   }
 });
