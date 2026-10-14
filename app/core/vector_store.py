@@ -163,6 +163,33 @@ class VectorStore:
             self.collection.delete(ids=ids_to_delete)
         return len(ids_to_delete)
 
+    def get_document_chunks(self, document_name: str, limit: int = 6) -> List[SearchResult]:
+        """Fetch chunks directly from a specific document in index order."""
+        data = self.collection.get(
+            where={"document_name": document_name},
+            include=["documents", "metadatas"],
+            limit=limit,
+        )
+        ids = data.get("ids", [])
+        docs = data.get("documents", [])
+        metas = data.get("metadatas", [])
+        results: List[SearchResult] = []
+        for i in range(len(ids)):
+            meta = metas[i] if i < len(metas) else {}
+            results.append(
+                SearchResult(
+                    chunk_id=ids[i],
+                    document_name=meta.get("document_name", document_name),
+                    page_number=meta.get("page_number", 1),
+                    chunk_index=meta.get("chunk_index", i),
+                    text=docs[i] if i < len(docs) else "",
+                    similarity_score=1.0,
+                )
+            )
+        # Sort by chunk_index
+        results.sort(key=lambda r: r.chunk_index)
+        return results
+
     def clear_all(self) -> None:
         """Delete and recreate collection."""
         self.client.delete_collection(self.collection_name)

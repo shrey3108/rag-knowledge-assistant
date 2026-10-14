@@ -83,6 +83,30 @@ class RAGService:
         }
         return normalized in greetings or normalized.startswith(("hi ", "hello ", "hey "))
 
+    @staticmethod
+    def is_overview_or_summary_query(query: str) -> bool:
+        """Detect if the user is asking for a general document summary or overview."""
+        normalized = re.sub(r"[^\w\s]", " ", query.strip().lower())
+        normalized = re.sub(r"\s+", " ", normalized).strip()
+        words = set(normalized.split())
+
+        # Direct keywords
+        summary_words = {"summarize", "summary", "overview", "describe", "outline"}
+        if summary_words.intersection(words):
+            return True
+
+        # Common phrases and typos (e.g. "what are in file", "what is in this pdf")
+        patterns = [
+            r"what\s+(is|are|was)\s+(in|inside)\s+",
+            r"what\s+does\s+this\s+(file|doc|document|pdf)\s+(say|contain|have)",
+            r"what\s+(is|are)\s+this\s+(file|doc|document|pdf)",
+            r"tell\s+me\s+about\s+(this|the)\s+(file|doc|document|pdf)",
+            r"explain\s+(this|the)\s+(file|doc|document|pdf)",
+            r"kya\s+hai\s+is",
+            r"kya\s+likha\s+hai",
+        ]
+        return any(re.search(p, normalized) for p in patterns)
+
     def ingest_document(self, content: bytes, filename: str) -> IngestionResult:
         """Parse, chunk, embed, and store a document with SHA-256 duplicate detection."""
         # 1. Parse document and compute content hash
@@ -223,6 +247,25 @@ class RAGService:
             r for r in raw_results if r.similarity_score >= self.settings.similarity_threshold
         ]
 
+        # Check if user is asking for an overview or summary of a document
+        is_summary = self.is_overview_or_summary_query(clean_query)
+
+        # Scoped document handling:
+        # If user explicitly selected a document filter, they are conversing directly with that document.
+        # Broad or conversational phrasing (e.g. "what are in file", "what is this", "tell me about it")
+        # should never be rejected.
+        if document_name:
+            if not filtered_results or is_summary:
+                doc_chunks = self.vector_store.get_document_chunks(document_name=document_name, limit=self.settings.top_k)
+                if doc_chunks:
+                    filtered_results = doc_chunks
+                elif raw_results:
+                    filtered_results = raw_results[:self.settings.top_k]
+        else:
+            # If no document was selected, but user asks a summary/overview query across the knowledge base
+            if not filtered_results and is_summary and raw_results:
+                filtered_results = raw_results[:self.settings.top_k]
+
         # If no chunks passed threshold, reject immediately without wasting LLM call
         if not filtered_results:
             logger.info(
@@ -260,13 +303,13 @@ class RAGService:
         formatted_context = "\n\n".join(context_blocks)
 
         system_prompt = (
-            "You are a rigorous, truthful AI knowledge assistant.\n"
-            "Your objective is to answer the user's question using ONLY the provided document excerpts.\n\n"
-            "STRICT RULES:\n"
-            "1. Answer strictly based on the provided context. Do NOT invent, assume, or extrapolate facts.\n"
-            f"2. If the context does not explicitly contain the necessary information to answer the question, you MUST respond exactly: '{UNAVAILABLE_MESSAGE}'\n"
+            "You are a helpful, intelligent, and truthful AI knowledge assistant.\n"
+            "Your objective is to answer the user's question using the provided document excerpts.\n\n"
+            "GUIDELINES:\n"
+            "1. Answer strictly based on the provided context. If the user asks what is in the document, what are in the file, or asks for a summary or explanation, provide a clear, well-structured overview of the provided text.\n"
+            f"2. Only if the provided context is completely unrelated to the question, respond: '{UNAVAILABLE_MESSAGE}'\n"
             "3. Cite your sources in the text using [Document: <filename>, Page: <page>] format wherever you reference facts.\n"
-            "4. Keep answers concise, factual, and direct."
+            "4. Keep answers helpful, factual, and direct."
         )
 
         user_prompt = (
